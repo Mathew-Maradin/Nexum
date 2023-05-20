@@ -22,7 +22,7 @@ contract Inventory {
     string memory _description, uint256 _cost, string memory _image) public returns (uint256){
         DataSet storage set = sets[numberOfDataSets];
 
-        set.owner = _owner;
+        set.owner = payable(_owner);
         set.displayName = _displayName;
         set.formattedName = _formattedName;
         set.jackalPath = string(abi.encodePacked(_owner, "/", _formattedName));
@@ -38,18 +38,21 @@ contract Inventory {
         uint256 amount = msg.value;
 
         DataSet storage set = sets[_id];
+        address payable _seller = set.owner;
 
-        require(amount != set.cost, "Incorrect amount paid!");
+        require(amount == set.cost, "Incorrect amount paid!");
+
+        _seller.transfer(msg.value);
 
         return numberOfDataSets;
     }
 
-    function getAuthorizedUsers(uint256 _id) public returns(address[] memory){
+    function getAuthorizedUsers(uint256 _id) public view returns(address[] memory){
         DataSet storage set = sets[_id];
         return(set.authorizedUsers);
     }
 
-    function getAllDataSets() public returns(DataSet[] memory){
+    function getAllDataSets() public view returns(DataSet[] memory){
         DataSet[] memory allSets = new DataSet[](numberOfDataSets);
 
         for (uint256 i = 1; i <= numberOfDataSets; i++) {
@@ -59,7 +62,7 @@ contract Inventory {
         return allSets;
     }
 
-    function getDataSet(uint256 _id) public returns(DataSet memory){
+    function getDataSet(uint256 _id) public view returns(DataSet memory){
         DataSet storage set = sets[_id];
         return(set);
     }
