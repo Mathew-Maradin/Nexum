@@ -15,6 +15,7 @@
     "eslint": "8.41.0",
     "eslint-config-next": "13.4.3",
     "gestalt": "^112.1.0",
+    "jackal.js": "^2.0.0-rc.1",
     "metamask-react": "^2.6.0",
     "next": "13.4.3",
     "react": "18.2.0",

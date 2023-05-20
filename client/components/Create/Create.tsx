@@ -37,14 +37,14 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
   const { watch, control, handleSubmit } = useForm({
     defaultValues: {
       name: "",
+      description: "",
+      price: "",
     },
   });
 
   const closeAndReset = () => {
     setIsCreateSidepanelVisible(false);
   };
-
-  console.log(watch("name"));
 
   return (
     <Layer zIndex={zIndex}>
@@ -112,10 +112,13 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
                 <NumberField
                   id="datasetPrice"
                   label="Price (ETH)"
-                  helperText={`$${(ETH_CONVERSION * 0.34).toFixed(2)} CAD`}
+                  helperText={`$${(ETH_CONVERSION * Number(value)).toFixed(
+                    2
+                  )} CAD`}
                   min={0}
                   onChange={({ value }) => onChange(value)}
                   value={Number(value)}
+                  step={0.0001}
                 />
               )}
             />
