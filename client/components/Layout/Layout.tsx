@@ -3,11 +3,14 @@ import { Container, TopBar } from "./Layout.styles";
 import { Avatar, Box, Button, Dropdown, Text } from "gestalt";
 import { useRef, useState } from "react";
 import { useRouter } from "next/router";
+import { Create } from "../Create/Create";
 
 export const Layout = ({ children }) => {
   const router = useRouter();
   const { account, connect } = useMetaMask();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+  const [isCreateSidepanelVisible, setIsCreateSidepanelVisible] =
+    useState(false);
   const dropdownAnchorRef = useRef(null);
 
   const handleButtonClick = () => {
@@ -36,12 +39,19 @@ export const Layout = ({ children }) => {
           >
             <Dropdown.Item
               onSelect={() => router.push("/purchases")}
-              option={{ value: "Datasets", label: "Datasets" }}
-            ></Dropdown.Item>
+              option={{ value: "purchases", label: "Purchases" }}
+            />
+            <Dropdown.Item
+              onSelect={() => setIsCreateSidepanelVisible(true)}
+              option={{ value: "create", label: "Create Dataset" }}
+            />
           </Dropdown>
         )}
       </TopBar>
       {children}
+      {isCreateSidepanelVisible && (
+        <Create setIsCreateSidepanelVisible={setIsCreateSidepanelVisible} />
+      )}
     </Container>
   );
 };
