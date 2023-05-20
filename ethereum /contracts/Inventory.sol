@@ -34,7 +34,7 @@ contract Inventory {
         return numberOfDataSets - 1;
     }
 
-    function buyDataSet (uint256 _id) public payable returns(uint256){
+    function buyDataSet (uint256 _id) public payable{
         uint256 amount = msg.value;
 
         DataSet storage set = sets[_id];
@@ -43,8 +43,6 @@ contract Inventory {
         require(amount == set.cost, "Incorrect amount paid!");
 
         _seller.transfer(msg.value);
-
-        return numberOfDataSets;
     }
 
     function getAuthorizedUsers(uint256 _id) public view returns(address[] memory){
