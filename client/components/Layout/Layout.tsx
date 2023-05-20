@@ -1,4 +1,4 @@
-import { useConnectedMetaMask } from "metamask-react";
+import { useConnectedMetaMask, useMetaMask } from "metamask-react";
 import { Container, TopBar } from "./Layout.styles";
 import { Avatar, Box, Button, Dropdown, Text } from "gestalt";
 import { useRef, useState } from "react";
@@ -6,9 +6,13 @@ import { useRouter } from "next/router";
 
 export const Layout = ({ children }) => {
   const router = useRouter();
-  const { account } = useConnectedMetaMask();
+  const { account, connect } = useMetaMask();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownAnchorRef = useRef(null);
+
+  const handleButtonClick = () => {
+    account ? setIsUserDropdownOpen(!isUserDropdownOpen) : connect();
+  };
 
   return (
     <Container>
@@ -17,10 +21,10 @@ export const Layout = ({ children }) => {
           Nexum
         </Text>
         <Button
-          onClick={() => setIsUserDropdownOpen(!isUserDropdownOpen)}
+          onClick={handleButtonClick}
           selected={isUserDropdownOpen}
-          iconEnd="arrow-down"
-          text={account.substring(0, 10) + "..."}
+          iconEnd={account ? "arrow-down" : "visit"}
+          text={account ? account.substring(0, 10) + "..." : "Login"}
           size="lg"
           ref={dropdownAnchorRef}
         />

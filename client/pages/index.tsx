@@ -14,7 +14,7 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
-        
+
       </Layout>
     </>
   );
@@ -22,6 +22,6 @@ export default function Home() {
 
 export const getStaticProps = () => ({
   props: {
-    isAuthenticated: true,
+    isAuthenticated: false,
   },
 });
