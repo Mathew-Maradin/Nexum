@@ -23,7 +23,7 @@ export const PageAuthenticationWrapper = ({
 
     if (status === "notConnected" || !account) {
       router.push("/login");
-      return <div></div>;
+      return;
     }
 
     if (status === "connected") return children;
