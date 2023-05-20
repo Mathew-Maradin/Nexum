@@ -1,5 +1,6 @@
 import { PageAuthenticationWrapper } from "@/components/PageAutheticationWrapper/PageAuthenticationWrapper";
-import 'gestalt/dist/gestalt.css';
+import "gestalt/dist/gestalt.css";
+import "@/styles/global.css";
 import { MetaMaskProvider } from "metamask-react";
 import type { AppProps } from "next/app";
 
