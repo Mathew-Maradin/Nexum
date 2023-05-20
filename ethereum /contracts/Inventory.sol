@@ -5,8 +5,7 @@ contract Inventory {
     struct DataSet {
         address payable owner;
         string displayName;
-        string formattedName;
-        string jackalPath;
+        string FID;
         string descrption;
         uint256 cost;
         string image;
@@ -18,14 +17,13 @@ contract Inventory {
 
     event ItemPurchased(uint256 itemId, string itemName, uint256 itemPrice);
 
-    function createDataSet (address _owner, string memory _displayName, string memory _formattedName,
+    function createDataSet (address _owner, string memory _displayName, string memory _FID,
     string memory _description, uint256 _cost, string memory _image) public returns (uint256){
         DataSet storage set = sets[numberOfDataSets];
 
         set.owner = payable(_owner);
         set.displayName = _displayName;
-        set.formattedName = _formattedName;
-        set.jackalPath = string(abi.encodePacked(_owner, "/", _formattedName));
+        set.FID = _FID;
         set.descrption = _description;
         set.cost = _cost;
         set.image = _image;
