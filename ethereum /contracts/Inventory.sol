@@ -18,13 +18,14 @@ contract Inventory {
 
     event ItemPurchased(uint256 itemId, string itemName, uint256 itemPrice);
 
-    function createDataSet (address _owner, string memory _title, string memory _description,
-     uint256 _cost, string memory _image) public returns (uint256){
-
+    function createDataSet (address _owner, string memory _displayName, string memory _formattedName,
+    string memory _description, uint256 _cost, string memory _image) public returns (uint256){
         DataSet storage set = sets[numberOfDataSets];
 
         set.owner = _owner;
-        set.title = _title;
+        set.displayName = _displayName;
+        set.formattedName = _formattedName;
+        set.jackalPath = string(abi.encodePacked(_owner, "/", _formattedName));
         set.descrption = _description;
         set.cost = _cost;
         set.image = _image;
@@ -58,7 +59,7 @@ contract Inventory {
         return allSets;
     }
 
-    function getDataSet(uint256 _id) public returns(DataSet){
+    function getDataSet(uint256 _id) public returns(DataSet memory){
         DataSet storage set = sets[_id];
         return(set);
     }
@@ -66,24 +67,21 @@ contract Inventory {
     function getPurchasedSets(address _user) public view returns (DataSet[] memory) {
         uint256 userItemCount = 0;
 
-        // Count the number of items the user is authorized to access
+        DataSet[] memory allSets = getAllDataSets();
+        DataSet[] memory authorizedSets;
+
         for (uint256 i = 1; i <= numberOfDataSets; i++) {
-            if (isUserAuthorizedForItem(_user, sets[i])) {
-                userItemCount++;
+            for (uint256 x = 1; x <= allSets[i].authorizedUsers.length; x++) {
+                if(_user == allSets[i].authorizedUsers[x]){
+                    authorizedSets[userItemCount] = allSets[i];
+                    userItemCount++;
+                } else {
+                    continue;
+                }
+                
             }
         }
-
-        DataSet[] memory userSets = new Item[](userItemCount);
-        uint256 userItemIndex = 0;
-
-        // Retrieve the items the user is authorized to access
-        for (uint256 i = 1; i <= itemCount; i++) {
-            if (isUserAuthorizedForItem(_user, sets[i])) {
-                userSets[userItemIndex] = sets[i];
-                userItemIndex++;
-            }
-        }
-
-        return userItems;
+        return authorizedSets;
     }
 }
+
