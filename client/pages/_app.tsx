@@ -6,6 +6,7 @@ import type { AppProps } from "next/app";
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "firebase/app";
+import { createContext } from "react";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -20,15 +21,21 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-initializeApp(firebaseConfig);
+const firebaseApp = initializeApp(firebaseConfig);
+
+export const FirebaseContext = createContext({
+  firebaseApp,
+});
 
 export default function App({ Component, pageProps }: AppProps) {
   const { isAuthenticated } = pageProps || {};
   return (
-    <MetaMaskProvider>
-      <PageAuthenticationWrapper isAuthenticated={isAuthenticated}>
-        <Component {...pageProps} />
-      </PageAuthenticationWrapper>
-    </MetaMaskProvider>
+    <FirebaseContext.Provider value={{ firebaseApp }}>
+      <MetaMaskProvider>
+        <PageAuthenticationWrapper isAuthenticated={isAuthenticated}>
+          <Component {...pageProps} />
+        </PageAuthenticationWrapper>
+      </MetaMaskProvider>
+    </FirebaseContext.Provider>
   );
 }
