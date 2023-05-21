@@ -25,6 +25,7 @@ import { useContract } from "@/util/useContract";
 import { useConnectedMetaMask } from "metamask-react";
 
 export const DatasetCard = ({
+  fid,
   name,
   thumnbnailUrls,
   numImages,
@@ -32,6 +33,7 @@ export const DatasetCard = ({
   cost,
   owner,
   index,
+  authorizedUsers,
 }) => {
   const [isDetailsSidepanelOpen, setIsDetailsSidepanelOpen] = useState(false);
   const [isBuying, setIsBuying] = useState(false);
@@ -40,6 +42,8 @@ export const DatasetCard = ({
   const sidepanelZIndex = new FixedZIndex(10);
   const { contract, address } = useContract();
   const { account, ethereum } = useConnectedMetaMask();
+
+  const isUserAuthorizedToDownload = authorizedUsers.includes(account);
 
   const buyDataset = async () => {
     // buy
@@ -158,6 +162,20 @@ export const DatasetCard = ({
                     target="blank"
                   >
                     {owner}
+                  </Link>
+                </Text>
+              </Flex>
+
+              <Flex direction="column" gap={{ row: 2, column: 2 }}>
+                <Text weight="bold">Download Link</Text>
+                <Text inline>
+                  <Link
+                    externalLinkIcon="default"
+                    href={`${process.env.NEXT_PUBLIC_JACKAL_HOST}/${fid}`}
+                    underline="always"
+                    target="blank"
+                  >
+                    {name}.zip
                   </Link>
                 </Text>
               </Flex>

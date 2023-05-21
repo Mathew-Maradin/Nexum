@@ -1,13 +1,12 @@
 import { Layout } from "@/components/Layout/Layout";
 import { useContract } from "@/util/useContract";
-import { Flex } from "gestalt";
-import Head from "next/head";
-import { SetStateAction, useContext, useEffect, useState } from "react";
+import { getFirestore, getDocs, collection } from "firebase/firestore";
+import { Box, Flex, Text } from "gestalt";
+import { useContext, useState, useEffect } from "react";
 import { FirebaseContext } from "./_app";
 import { DatasetCard } from "@/components/DatasetCard/DatasetCard";
-import { collection, getDocs, getFirestore } from "firebase/firestore";
 
-export default function Home() {
+const Purchases = () => {
   const { contract } = useContract();
   const { firebaseApp } = useContext(FirebaseContext);
   const db = getFirestore(firebaseApp);
@@ -55,55 +54,55 @@ export default function Home() {
 
     fetchAllDataSets();
   }, [contract]);
-
   return (
-    <>
-      <Head>
-        <title>Nexum</title>
-        <meta
-          name="description"
-          content="Get exclusive private AI training datasets"
-        />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <Layout>
-        <Flex gap={{ row: 8, column: 8 }}>
-          {dataSets?.map(
-            (
-              {
-                index,
-                owner,
-                name,
-                numImages,
-                description,
-                cost,
-                thumbnailUrls,
-                authorizedUsers,
-              },
-              idx
-            ) => (
-              <DatasetCard
-                key={idx}
-                name={name}
-                numImages={numImages}
-                description={description}
-                cost={cost}
-                thumnbnailUrls={thumbnailUrls}
-                owner={owner}
-                index={index}
-                authorizedUsers={authorizedUsers}
-              />
-            )
-          )}
-        </Flex>
-      </Layout>
-    </>
-  );
-}
+    <Layout>
+      <Box marginBottom={6}>
+        <Text weight="bold" size="500">
+          Your Purchases
+        </Text>
+      </Box>
 
-export const getStaticProps = () => ({
-  props: {
-    isAuthenticated: false,
-  },
-});
+      <Flex gap={{ row: 8, column: 8 }}>
+        {dataSets?.map(
+          (
+            {
+              authorizedUsers,
+              index,
+              owner,
+              name,
+              numImages,
+              description,
+              cost,
+              thumbnailUrls,
+              fid
+            },
+            idx
+          ) => (
+            <DatasetCard
+              key={idx}
+              name={name}
+              numImages={numImages}
+              description={description}
+              cost={cost}
+              thumnbnailUrls={thumbnailUrls}
+              owner={owner}
+              index={index}
+              authorizedUsers={authorizedUsers}
+              fid={fid}
+            />
+          )
+        )}
+      </Flex>
+    </Layout>
+  );
+};
+
+export default Purchases;
+
+export const getStaticProps = () => {
+  return {
+    props: {
+      isAuthenticated: true,
+    },
+  };
+};
