@@ -5,10 +5,12 @@ import { Box, Flex, Text } from "gestalt";
 import { useContext, useState, useEffect } from "react";
 import { FirebaseContext } from "./_app";
 import { DatasetCard } from "@/components/DatasetCard/DatasetCard";
+import { useConnectedMetaMask } from "metamask-react";
 
 const Purchases = () => {
   const { contract } = useContract();
   const { firebaseApp } = useContext(FirebaseContext);
+  const { account } = useConnectedMetaMask();
   const db = getFirestore(firebaseApp);
 
   const [dataSets, setDataSets] = useState<Array<Record<string, unknown>>>([]);
@@ -54,6 +56,15 @@ const Purchases = () => {
 
     fetchAllDataSets();
   }, [contract]);
+
+  const doesAuthorizedUsersIncludeUser = (authorizedUsers) => {
+    return Boolean(
+      authorizedUsers.filter(
+        (user) => user.toLowerCase() === account.toLowerCase()
+      )?.length
+    );
+  };
+
   return (
     <Layout>
       <Box marginBottom={6}>
@@ -63,35 +74,39 @@ const Purchases = () => {
       </Box>
 
       <Flex gap={{ row: 8, column: 8 }}>
-        {dataSets?.map(
-          (
-            {
-              authorizedUsers,
-              index,
-              owner,
-              name,
-              numImages,
-              description,
-              cost,
-              thumbnailUrls,
-              fid
-            },
-            idx
-          ) => (
-            <DatasetCard
-              key={idx}
-              name={name}
-              numImages={numImages}
-              description={description}
-              cost={cost}
-              thumnbnailUrls={thumbnailUrls}
-              owner={owner}
-              index={index}
-              authorizedUsers={authorizedUsers}
-              fid={fid}
-            />
-          )
-        )}
+        {dataSets
+          ?.filter(({ authorizedUsers }) => {
+            return doesAuthorizedUsersIncludeUser(authorizedUsers);
+          })
+          .map(
+            (
+              {
+                authorizedUsers,
+                index,
+                owner,
+                name,
+                numImages,
+                description,
+                cost,
+                thumbnailUrls,
+                fid,
+              },
+              idx
+            ) => (
+              <DatasetCard
+                key={idx}
+                name={name}
+                numImages={numImages}
+                description={description}
+                cost={cost}
+                thumnbnailUrls={thumbnailUrls}
+                owner={owner}
+                index={index}
+                authorizedUsers={authorizedUsers}
+                fid={fid}
+              />
+            )
+          )}
       </Flex>
     </Layout>
   );

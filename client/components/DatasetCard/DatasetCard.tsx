@@ -43,7 +43,11 @@ export const DatasetCard = ({
   const { contract, address } = useContract();
   const { account, ethereum } = useConnectedMetaMask();
 
-  const isUserAuthorizedToDownload = authorizedUsers.includes(account);
+  const isUserAuthorizedToDownload = Boolean(
+    authorizedUsers.filter(
+      (user) => user.toLowerCase() === account.toLowerCase()
+    )?.length
+  );
 
   const buyDataset = async () => {
     // buy
@@ -123,16 +127,17 @@ export const DatasetCard = ({
           <OverlayPanel
             accessibilityLabel="create dataset"
             onDismiss={() => setIsDetailsSidepanelOpen(false)}
-            closeOnOutsideClick={false}
             footer={
-              <Flex justifyContent="end">
-                <Button
-                  text={isBuying ? "Confirming Purchase..." : "Buy Dataset"}
-                  onClick={buyDataset}
-                  color="blue"
-                  disabled={isBuying}
-                />
-              </Flex>
+              !isUserAuthorizedToDownload && (
+                <Flex justifyContent="end">
+                  <Button
+                    text={isBuying ? "Confirming Purchase..." : "Buy Dataset"}
+                    onClick={buyDataset}
+                    color="blue"
+                    disabled={isBuying}
+                  />
+                </Flex>
+              )
             }
             heading={name}
             size="sm"
@@ -166,19 +171,21 @@ export const DatasetCard = ({
                 </Text>
               </Flex>
 
-              <Flex direction="column" gap={{ row: 2, column: 2 }}>
-                <Text weight="bold">Download Link</Text>
-                <Text inline>
-                  <Link
-                    externalLinkIcon="default"
-                    href={`${process.env.NEXT_PUBLIC_JACKAL_HOST}/${fid}`}
-                    underline="always"
-                    target="blank"
-                  >
-                    {name}.zip
-                  </Link>
-                </Text>
-              </Flex>
+              {isUserAuthorizedToDownload && (
+                <Flex direction="column" gap={{ row: 2, column: 2 }}>
+                  <Text weight="bold">Download Link</Text>
+                  <Text inline>
+                    <Link
+                      externalLinkIcon="default"
+                      href={`${process.env.NEXT_PUBLIC_JACKAL_HOST}/${fid}`}
+                      underline="always"
+                      target="blank"
+                    >
+                      {name}.zip
+                    </Link>
+                  </Text>
+                </Flex>
+              )}
             </Flex>
           </OverlayPanel>
         </Layer>

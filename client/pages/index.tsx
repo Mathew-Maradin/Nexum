@@ -1,6 +1,6 @@
 import { Layout } from "@/components/Layout/Layout";
 import { useContract } from "@/util/useContract";
-import { Flex } from "gestalt";
+import { Box, Flex, Spinner, Text } from "gestalt";
 import Head from "next/head";
 import { SetStateAction, useContext, useEffect, useState } from "react";
 import { FirebaseContext } from "./_app";
@@ -50,7 +50,9 @@ export default function Home() {
         };
       });
 
-      setDataSets(finalDataset);
+      setTimeout(() => {
+        setDataSets(finalDataset);
+      }, 500);
     };
 
     fetchAllDataSets();
@@ -68,35 +70,57 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
-        <Flex gap={{ row: 8, column: 8 }}>
-          {dataSets?.map(
-            (
-              {
-                index,
-                owner,
-                name,
-                numImages,
-                description,
-                cost,
-                thumbnailUrls,
-                authorizedUsers,
-              },
-              idx
-            ) => (
-              <DatasetCard
-                key={idx}
-                name={name}
-                numImages={numImages}
-                description={description}
-                cost={cost}
-                thumnbnailUrls={thumbnailUrls}
-                owner={owner}
-                index={index}
-                authorizedUsers={authorizedUsers}
-              />
-            )
-          )}
-        </Flex>
+        {dataSets?.length > 0 ? (
+          <>
+            <Box marginBottom={6}>
+              <Text weight="bold" size="500">
+                Datasets ({dataSets.length})
+              </Text>
+            </Box>
+            <Flex gap={{ row: 8, column: 8 }}>
+              {dataSets?.map(
+                (
+                  {
+                    index,
+                    owner,
+                    name,
+                    numImages,
+                    description,
+                    cost,
+                    thumbnailUrls,
+                    authorizedUsers,
+                    fid,
+                  },
+                  idx
+                ) => (
+                  <DatasetCard
+                    key={idx}
+                    name={name}
+                    numImages={numImages}
+                    description={description}
+                    cost={cost}
+                    thumnbnailUrls={thumbnailUrls}
+                    owner={owner}
+                    index={index}
+                    authorizedUsers={authorizedUsers}
+                    fid={fid}
+                  />
+                )
+              )}
+            </Flex>
+          </>
+        ) : (
+          <Flex
+            height="550px"
+            width="100%"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <div style={{ marginTop: -50 }}>
+              <Spinner show accessibilityLabel="loading" />
+            </div>
+          </Flex>
+        )}
       </Layout>
     </>
   );

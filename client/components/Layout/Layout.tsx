@@ -1,6 +1,6 @@
 import { useConnectedMetaMask, useMetaMask } from "metamask-react";
 import { Container, TopBar } from "./Layout.styles";
-import { Avatar, Box, Button, Dropdown, Text } from "gestalt";
+import { Avatar, Box, Button, Dropdown, Link, Text } from "gestalt";
 import { useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { Create } from "../Create/Create";
@@ -21,7 +21,7 @@ export const Layout = ({ children }) => {
     <Container>
       <TopBar>
         <Text weight="bold" size="400">
-          Nexum
+          <Link href="/">Nexum</Link>
         </Text>
         <Button
           onClick={handleButtonClick}
