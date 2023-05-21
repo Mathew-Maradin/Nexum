@@ -1,4 +1,5 @@
 import { Box, Collage, Image, Mask, Text } from "gestalt";
+import { DatasetDescriptionContainer } from "./DatasetCard.styles";
 
 export const DatasetCard = ({ name, thumnbnailUrls }) => {
   return (
@@ -22,7 +23,9 @@ export const DatasetCard = ({ name, thumnbnailUrls }) => {
           );
         }}
       />
-      <Text>{name}</Text>
+      <DatasetDescriptionContainer>
+        <Text color="light" weight="bold" size="400">{name}</Text>
+      </DatasetDescriptionContainer>
     </Box>
   );
 };

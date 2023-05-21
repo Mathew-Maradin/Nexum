@@ -144,6 +144,7 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
         setDoc(fireStoreDoc, {
           thumbnailUrls: [],
           fid,
+          numImages: data.files.length,
         });
 
         // // then upload thumbnails and set under contract ID in firestore
