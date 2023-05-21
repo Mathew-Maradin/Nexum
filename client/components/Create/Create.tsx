@@ -10,12 +10,19 @@ import {
   TextArea,
   TextField,
 } from "gestalt";
+import { createAlchemyWeb3 } from "@alch/alchemy-web3";
 import JSZip from "jszip";
 import ABIObject from "../../contract.json";
-import { ethers } from "ethers";
+import { utils } from "ethers";
 import { useUploadFile } from "react-firebase-hooks/storage";
-import { getStorage, ref } from "firebase/storage";
-import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { getDownloadURL, getStorage, ref } from "firebase/storage";
+import {
+  arrayUnion,
+  doc,
+  getFirestore,
+  setDoc,
+  updateDoc,
+} from "firebase/firestore";
 import { Controller, useForm } from "react-hook-form";
 // Import React FilePond
 import { FilePond, registerPlugin } from "react-filepond";
@@ -32,6 +39,7 @@ import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import { useContext } from "react";
 import { FirebaseContext } from "@/pages/_app";
 import { useConnectedMetaMask } from "metamask-react";
+import { useContract } from "@/util/useContract";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -66,7 +74,8 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
       files: [],
     },
   });
-  const { account } = useConnectedMetaMask();
+  const { account, ethereum } = useConnectedMetaMask();
+  const { contract, address } = useContract();
   const { firebaseApp } = useContext(FirebaseContext);
 
   const [uploadFile] = useUploadFile();
@@ -95,41 +104,52 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
 
     // const { fid } = (await jackalResponse.json()) || {};
 
-    if (true) {
+    const fid =
+      "jklf1xzhm0vz7jxjzrk77ym92dmp4y2m42edllnepc2pk9awqdtsn0u0shn025z";
+
+    if (fid) {
       // create smart contract
-      const CONTRACT_ADDY = "0x1058ac4eDdBC11c5Bce945D8301D5Fa61ea46f1F";
-      const provider = new ethers.providers.JsonRpcProvider(
-        `https://eth-mainnet.alchemyapi.io/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`
-      );
-      const signer = provider.getSigner(account);
-      const contract = new ethers.Contract(
-        CONTRACT_ADDY,
-        ABIObject.abi,
-        signer
-      );
-      const datasets = await contract.createDataSet(
-        account,
-        "Test set",
-        "jklf1xzhm0vz7jxjzrk77ym92dmp4y2m42edllnepc2pk9awqdtsn0u0shn025z",
-        "test description",
-        0.02,
-        "https://imgur.com"
-      );
-      console.log(datasets);
+      const txnDetails = {
+        to: address,
+        from: account,
+        data: contract.methods
+          .createDataSet(
+            account,
+            data.name,
+            fid,
+            data.description,
+            utils.parseUnits(data.price.toString(), "ether")
+          )
+          .encodeABI(),
+      };
+
+      // buy
+      // const txnDetails = {
+      //   to: address,
+      //   from: account,
+      //   value: utils.parseUnits(data.price.toString(), "ether").toHexString(),
+      //   data: contract.methods.buyDataSet(0).encodeABI(),
+      // };
+
+      const response = await ethereum.request({
+        method: "eth_sendTransaction",
+        params: [txnDetails],
+      });
+
       // create firestore document for the contract
-      // await setDoc(doc(db, "datasets", TEST_CONTRACT_ID), {
-      //   thumbnailUrls: data.files.map(
-      //     (file: File) => `${TEST_CONTRACT_ID}/${file.name}`
-      //   ),
-      // });
+      const thumbnailFiles = data.files.slice(0, 4);
 
       // // then upload thumbnails and set under contract ID in firestore
-      // data.files.forEach(async (file: File) => {
-      //   const fileRef = ref(storage, `${TEST_CONTRACT_ID}/${file.name}`);
-      //   const result = await uploadFile(fileRef, file, {
-      //     contentType: file.type,
-      //   });
-      // });
+      thumbnailFiles.forEach(async (file: File) => {
+        const fileRef = ref(storage, `${fid}/${file.name}`);
+        const result = await uploadFile(fileRef, file, {
+          contentType: file.type,
+        });
+        const downloadUrl = await getDownloadURL(result.ref);
+        setDoc(doc(db, "datasets", fid), {
+          thumbnailUrls: arrayUnion(downloadUrl),
+        });
+      });
     }
   };
 
