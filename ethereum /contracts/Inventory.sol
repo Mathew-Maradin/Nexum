@@ -6,7 +6,7 @@ contract Inventory {
         address payable owner;
         string displayName;
         string FID;
-        string descrption;
+        string description;
         uint256 cost;
         string image;
         address[] authorizedUsers;
@@ -24,7 +24,7 @@ contract Inventory {
         set.owner = payable(_owner);
         set.displayName = _displayName;
         set.FID = _FID;
-        set.descrption = _description;
+        set.description = _description;
         set.cost = _cost;
         set.image = _image;
 
@@ -100,4 +100,5 @@ contract Inventory {
         return authorizedSets;
     }
 }
+
 
