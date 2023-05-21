@@ -13,3 +13,7 @@ body {
   width: 100%;
   overflow-x: hidden;
 }
+
+.filepond--item {
+  width: calc(20% - 0.5em);
+}

@@ -11,6 +11,21 @@ import {
   TextField,
 } from "gestalt";
 import { Controller, useForm } from "react-hook-form";
+// Import React FilePond
+import { FilePond, registerPlugin } from "react-filepond";
+
+// Import FilePond styles
+import "filepond/dist/filepond.min.css";
+
+// Import the Image EXIF Orientation and Image Preview plugins
+// Note: These need to be installed separately
+// `npm i filepond-plugin-image-preview filepond-plugin-image-exif-orientation --save`
+import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
+import FilePondPluginImagePreview from "filepond-plugin-image-preview";
+import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+
+// Register the plugins
+registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
 
 const ETH_CONVERSION = 2451.97;
 
@@ -39,6 +54,7 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
       name: "",
       description: "",
       price: "",
+      files: [],
     },
   });
 
@@ -119,6 +135,24 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
                   onChange={({ value }) => onChange(value)}
                   value={Number(value)}
                   step={0.0001}
+                />
+              )}
+            />
+          </Step>
+          <Step title="Step 3: " subtitle="Upload your dataset files">
+            <Controller
+              control={control}
+              name="files"
+              render={({ field: { onChange, value } }) => (
+                <FilePond
+                  files={value}
+                  onupdatefiles={(files) => {
+                    onChange(files.map((file) => file.file));
+                  }}
+                  allowMultiple={true}
+                  labelIdle='Drag & Drop your files or <span class="filepond--label-action">Browse</span>'
+                  credits={false}
+                  instantUpload={false}
                 />
               )}
             />
