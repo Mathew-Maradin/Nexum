@@ -1,9 +1,5 @@
 require("@nomiclabs/hardhat-ethers");
 
-const API_URL = "5wqhpOjMlwrv9KQM-NzDZjli3RytlI93";
-const PRIVATE_KEY =
-  "giggle gap stick diet pill broom move sock pottery evidence dice outdoor";
-
 module.exports = {
   defaultNetwork: "sepolia",
   networks: {
