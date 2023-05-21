@@ -14,13 +14,13 @@ contract Inventory {
     DataSet[] public sets;
     uint256 public numberOfDataSets = 0;
 
+
     event ItemPurchased(address buyer, uint256 amount);
 
     function createDataSet (address _owner, string memory _displayName, string memory _FID,
     string memory _description, uint256 _cost) public returns (uint256){
 
-        address[] memory users = new address[](1);
-        users[0] = _owner;
+        address[] memory users;
 
         sets.push( DataSet({
             owner: payable(_owner),
@@ -37,11 +37,13 @@ contract Inventory {
 
     function buyDataSet (uint256 _index) public payable{
         uint256 amount = msg.value;
+        address buyer = msg.sender;
 
         DataSet storage set = sets[_index];
         address payable _seller = set.owner;
 
         _seller.transfer(set.cost);
+        set.authorizedUsers.push(buyer);
         emit ItemPurchased(msg.sender, amount);
     }
 
