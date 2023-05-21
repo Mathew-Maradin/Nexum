@@ -1,14 +1,18 @@
-require("@nomiclabs/hardhat-waffle");
+require("@nomiclabs/hardhat-ethers");
 
-const infuraApiKey = "472fabf7fd0b4e8c9292084ab5d933ce";
-const mnemonic =
+const API_URL = "5wqhpOjMlwrv9KQM-NzDZjli3RytlI93";
+const PRIVATE_KEY =
   "giggle gap stick diet pill broom move sock pottery evidence dice outdoor";
 
 module.exports = {
+  defaultNetwork: "sepolia",
   networks: {
-    mainnet: {
-      url: `https://mainnet.infura.io/v3/${infuraApiKey}`,
-      accounts: { mnemonic: mnemonic },
+    hardhat: {},
+    sepolia: {
+      url: "https://eth-sepolia.g.alchemy.com/v2/5wqhpOjMlwrv9KQM-NzDZjli3RytlI93",
+      accounts: [
+        "540b02abd96e51829255a6c4b7e522ef040c7a9847ff6099cca972513fdd7838",
+      ],
     },
   },
   solidity: {
@@ -19,5 +23,14 @@ module.exports = {
         runs: 200,
       },
     },
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts",
+  },
+  mocha: {
+    timeout: 40000,
   },
 };
