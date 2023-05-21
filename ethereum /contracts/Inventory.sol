@@ -15,7 +15,7 @@ contract Inventory {
     mapping(uint256 => DataSet) public sets;
     uint256 public numberOfDataSets = 0;
 
-    event ItemPurchased(uint256 itemId, string itemName, uint256 itemPrice);
+    event ItemPurchased(address buyer, uint256 amount);
 
     function createDataSet (address _owner, string memory _displayName, string memory _FID,
     string memory _description, uint256 _cost, string memory _image) public returns (uint256){
@@ -32,20 +32,31 @@ contract Inventory {
         return numberOfDataSets - 1;
     }
 
-    function buyDataSet (uint256 _id) public payable{
+    function buyDataSet (string memory _FID) public payable{
         uint256 amount = msg.value;
 
-        DataSet storage set = sets[_id];
-        address payable _seller = set.owner;
+        for (uint256 i = 1; i <= numberOfDataSets; i++) {
+            if (keccak256(bytes(_FID)) == keccak256(bytes(sets[i].FID))) {
+                DataSet storage set = sets[i];
+                
+                address payable _seller = set.owner;
 
-        require(amount == set.cost, "Incorrect amount paid!");
+                require(amount == set.cost, "Incorrect amount paid!");
 
-        _seller.transfer(msg.value);
+                _seller.transfer(msg.value);
+                emit ItemPurchased(msg.sender, msg.value);
+            }
+        }
     }
 
-    function getAuthorizedUsers(uint256 _id) public view returns(address[] memory){
-        DataSet storage set = sets[_id];
-        return(set.authorizedUsers);
+    function getAuthorizedUsers(string memory _FID) public view returns(address[] memory){
+        for (uint256 i = 1; i <= numberOfDataSets; i++) {
+            if (keccak256(bytes(_FID)) == keccak256(bytes(sets[i].FID))) {
+                DataSet storage set = sets[i];
+                return(set.authorizedUsers);
+            }
+        }
+        revert("Dataset not found");
     }
 
     function getAllDataSets() public view returns(DataSet[] memory){
@@ -58,9 +69,15 @@ contract Inventory {
         return allSets;
     }
 
-    function getDataSet(uint256 _id) public view returns(DataSet memory){
-        DataSet storage set = sets[_id];
-        return(set);
+    function getDataSet(string memory _FID) public view returns(DataSet memory){
+        for (uint256 i = 1; i <= numberOfDataSets; i++) {
+            if (keccak256(bytes(_FID)) == keccak256(bytes(sets[i].FID))) {
+                DataSet storage set = sets[i];
+                return(set);
+            }
+        }
+
+        revert("Dataset not found");
     }
 
     function getPurchasedSets(address _user) public view returns (DataSet[] memory) {
