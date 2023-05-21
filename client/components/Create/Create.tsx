@@ -10,8 +10,12 @@ import {
   TextArea,
   TextField,
 } from "gestalt";
+import JSZip from "jszip";
+import ABIObject from "../../contract.json";
+import { ethers } from "ethers";
 import { useUploadFile } from "react-firebase-hooks/storage";
 import { getStorage, ref } from "firebase/storage";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
 import { Controller, useForm } from "react-hook-form";
 // Import React FilePond
 import { FilePond, registerPlugin } from "react-filepond";
@@ -27,6 +31,7 @@ import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
 import { useContext } from "react";
 import { FirebaseContext } from "@/pages/_app";
+import { useConnectedMetaMask } from "metamask-react";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -61,25 +66,71 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
       files: [],
     },
   });
+  const { account } = useConnectedMetaMask();
   const { firebaseApp } = useContext(FirebaseContext);
 
-  const [uploadFile, uploading, snapshot, error] = useUploadFile();
+  const [uploadFile] = useUploadFile();
   const storage = getStorage(firebaseApp);
+  const db = getFirestore(firebaseApp);
 
   const closeAndReset = () => {
     setIsCreateSidepanelVisible(false);
   };
 
-  const onSubmit = (data) => {
-    console.log(data);
+  const onSubmit = async (data) => {
+    // first ZIP all of the files and then upload them to jackal
+    // const zip = new JSZip();
+    // data.files.forEach((file: File) =>
+    //   zip.file(file.webkitRelativePath || file.name, file, { binary: true })
+    // );
+    // const zippedBlob = await zip.generateAsync({ type: "blob" });
+    // console.log(zippedBlob);
+    // const jackalFormData = new FormData();
+    // jackalFormData.append("file", zippedBlob, `${data.name}.zip`);
+    // const jackalResponse = await fetch("http://localhost:2929/upload", {
+    //   method: "POST",
+    //   body: jackalFormData,
+    //   redirect: "follow",
+    // });
 
-    // create smart contract
-    const TEST_CONTRACT_ID = "0xjoiwj4f3f";
+    // const { fid } = (await jackalResponse.json()) || {};
 
-    // then upload thumbnails and set under contract ID in firestore
-    data.files.forEach((file: File) => {
-      const fileRef = ref(storage, `${TEST_CONTRACT_ID}/${file.name}`);
-    });
+    if (true) {
+      // create smart contract
+      const CONTRACT_ADDY = "0x1058ac4eDdBC11c5Bce945D8301D5Fa61ea46f1F";
+      const provider = new ethers.providers.JsonRpcProvider(
+        `https://eth-mainnet.alchemyapi.io/v2/${process.env.NEXT_PUBLIC_ALCHEMY_KEY}`
+      );
+      const signer = provider.getSigner(account);
+      const contract = new ethers.Contract(
+        CONTRACT_ADDY,
+        ABIObject.abi,
+        signer
+      );
+      const datasets = await contract.createDataSet(
+        account,
+        "Test set",
+        "jklf1xzhm0vz7jxjzrk77ym92dmp4y2m42edllnepc2pk9awqdtsn0u0shn025z",
+        "test description",
+        0.02,
+        "https://imgur.com"
+      );
+      console.log(datasets);
+      // create firestore document for the contract
+      // await setDoc(doc(db, "datasets", TEST_CONTRACT_ID), {
+      //   thumbnailUrls: data.files.map(
+      //     (file: File) => `${TEST_CONTRACT_ID}/${file.name}`
+      //   ),
+      // });
+
+      // // then upload thumbnails and set under contract ID in firestore
+      // data.files.forEach(async (file: File) => {
+      //   const fileRef = ref(storage, `${TEST_CONTRACT_ID}/${file.name}`);
+      //   const result = await uploadFile(fileRef, file, {
+      //     contentType: file.type,
+      //   });
+      // });
+    }
   };
 
   const onError = (errors, e) => console.log(errors, e);
