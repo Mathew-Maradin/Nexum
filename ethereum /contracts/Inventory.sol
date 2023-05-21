@@ -22,9 +22,6 @@ contract Inventory {
         address[] memory users = new address[](1);
         users[0] = _owner;
 
-        address[] memory authorizedUsers;
-        authorizedUsers[0] = _owner;
-
         sets.push( DataSet({
             owner: payable(_owner),
             displayName: _displayName,
@@ -40,13 +37,11 @@ contract Inventory {
 
     function buyDataSet (uint256 _index) public payable{
         uint256 amount = msg.value;
-        address buyer = msg.sender;
 
         DataSet storage set = sets[_index];
         address payable _seller = set.owner;
 
         _seller.transfer(set.cost);
-        set.authorizedUsers[set.authorizedUsers.length - 1] = buyer;
         emit ItemPurchased(msg.sender, amount);
     }
 
