@@ -10,4 +10,7 @@ export const DatasetDescriptionContainer = styled.div`
 
   display: flex;
   flex-direction: column-reverse;
+  border-radius: 12px;
+  overflow: hidden;
 `
+

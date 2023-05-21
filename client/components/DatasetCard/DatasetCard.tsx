@@ -3,7 +3,7 @@ import { DatasetDescriptionContainer } from "./DatasetCard.styles";
 
 export const DatasetCard = ({ name, thumnbnailUrls }) => {
   return (
-    <Box rounding={3} overflow="hidden">
+    <Box rounding={3} overflow="hidden" height="300px">
       <Collage
         columns={2}
         height={300}
