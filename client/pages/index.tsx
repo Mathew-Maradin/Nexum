@@ -12,9 +12,7 @@ export default function Home() {
   const { firebaseApp } = useContext(FirebaseContext);
   const db = getFirestore(firebaseApp);
 
-  const [dataSets, setDataSets] = useState<
-    Array<Record<string, unknown>>
-  >([]);
+  const [dataSets, setDataSets] = useState<Array<Record<string, unknown>>>([]);
 
   useEffect(() => {
     const fetchAllDataSets = async () => {
@@ -37,10 +35,11 @@ export default function Home() {
       });
 
       // merge the two arrays
-      const finalDataset = allOnChainDatasets.map((dataset) => {
+      const finalDataset = allOnChainDatasets.map((dataset, idx) => {
         const fid = dataset[2];
         const firebaseDoc = finalFBDatasets?.[fid] || {};
         return {
+          index: idx,
           owner: dataset[0],
           name: dataset[1],
           fid,
@@ -70,9 +69,31 @@ export default function Home() {
       </Head>
       <Layout>
         <Flex gap={{ row: 8, column: 8 }}>
-          {dataSets?.map(({ name, description, cost, thumbnailUrls }) => (
-            <DatasetCard key={name} name={name} thumnbnailUrls={thumbnailUrls} />
-          ))}
+          {dataSets?.map(
+            (
+              {
+                index,
+                owner,
+                name,
+                numImages,
+                description,
+                cost,
+                thumbnailUrls,
+              },
+              idx
+            ) => (
+              <DatasetCard
+                key={idx}
+                name={name}
+                numImages={numImages}
+                description={description}
+                cost={cost}
+                thumnbnailUrls={thumbnailUrls}
+                owner={owner}
+                index={index}
+              />
+            )
+          )}
         </Flex>
       </Layout>
     </>
