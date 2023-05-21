@@ -8,89 +8,71 @@ contract Inventory {
         string FID;
         string description;
         uint256 cost;
-        string image;
         address[] authorizedUsers;
     }
 
-    mapping(uint256 => DataSet) public sets;
+    DataSet[] public sets;
     uint256 public numberOfDataSets = 0;
 
     event ItemPurchased(address buyer, uint256 amount);
 
     function createDataSet (address _owner, string memory _displayName, string memory _FID,
-    string memory _description, uint256 _cost, string memory _image) public returns (uint256){
-        DataSet storage set = sets[numberOfDataSets];
+    string memory _description, uint256 _cost) public returns (uint256){
 
-        set.owner = payable(_owner);
-        set.displayName = _displayName;
-        set.FID = _FID;
-        set.description = _description;
-        set.cost = _cost;
-        set.image = _image;
+        address[] memory users = new address[](1);
+        users[0] = _owner;
+
+        address[] memory authorizedUsers;
+        authorizedUsers[0] = _owner;
+
+        sets.push( DataSet({
+            owner: payable(_owner),
+            displayName: _displayName,
+            FID: _FID,
+            description: _description,
+            cost: _cost,  
+            authorizedUsers: users
+        }));
 
         numberOfDataSets++;
         return numberOfDataSets - 1;
     }
 
-    function buyDataSet (string memory _FID) public payable{
+    function buyDataSet (uint256 _index) public payable{
         uint256 amount = msg.value;
+        address buyer = msg.sender;
 
-        for (uint256 i = 1; i <= numberOfDataSets; i++) {
-            if (keccak256(bytes(_FID)) == keccak256(bytes(sets[i].FID))) {
-                DataSet storage set = sets[i];
-                
-                address payable _seller = set.owner;
+        DataSet storage set = sets[_index];
+        address payable _seller = set.owner;
 
-                require(amount == set.cost, "Incorrect amount paid!");
-
-                _seller.transfer(msg.value);
-                emit ItemPurchased(msg.sender, msg.value);
-            }
-        }
+        _seller.transfer(set.cost);
+        set.authorizedUsers[set.authorizedUsers.length - 1] = buyer;
+        emit ItemPurchased(msg.sender, amount);
     }
 
-    function getAuthorizedUsers(string memory _FID) public view returns(address[] memory){
-        for (uint256 i = 1; i <= numberOfDataSets; i++) {
-            if (keccak256(bytes(_FID)) == keccak256(bytes(sets[i].FID))) {
-                DataSet storage set = sets[i];
-                return(set.authorizedUsers);
-            }
-        }
-        revert("Dataset not found");
+    function getAuthorizedUsers(uint256 _index) public view returns(address[] memory){
+        DataSet storage set = sets[_index];
+        return(set.authorizedUsers); 
     }
 
     function getAllDataSets() public view returns(DataSet[] memory){
-        DataSet[] memory allSets = new DataSet[](numberOfDataSets);
-
-        for (uint256 i = 1; i <= numberOfDataSets; i++) {
-            allSets[i - 1] = sets[i];
-        }
-
-        return allSets;
+        return sets;
     }
 
-    function getDataSet(string memory _FID) public view returns(DataSet memory){
-        for (uint256 i = 1; i <= numberOfDataSets; i++) {
-            if (keccak256(bytes(_FID)) == keccak256(bytes(sets[i].FID))) {
-                DataSet storage set = sets[i];
-                return(set);
-            }
-        }
-
-        revert("Dataset not found");
+    function getDataSet(uint256 _index) public view returns(DataSet memory){
+        return(sets[_index]);
     }
 
     function getPurchasedSets(address _user) public view returns (DataSet[] memory) {
-        uint256 userItemCount = 0;
-
+        uint256 userSetCount = 0;
         DataSet[] memory allSets = getAllDataSets();
         DataSet[] memory authorizedSets;
 
-        for (uint256 i = 1; i <= numberOfDataSets; i++) {
-            for (uint256 x = 1; x <= allSets[i].authorizedUsers.length; x++) {
+        for (uint256 i = 0; i <= numberOfDataSets; i++) {
+            for (uint256 x = 0; x <= allSets[i].authorizedUsers.length; x++) {
                 if(_user == allSets[i].authorizedUsers[x]){
-                    authorizedSets[userItemCount] = allSets[i];
-                    userItemCount++;
+                    authorizedSets[userSetCount] = allSets[i];
+                    userSetCount++;
                 } else {
                     continue;
                 }
