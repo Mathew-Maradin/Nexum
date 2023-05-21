@@ -1,7 +1,62 @@
 import { Layout } from "@/components/Layout/Layout";
+import { useContract } from "@/util/useContract";
+import { Flex } from "gestalt";
 import Head from "next/head";
+import { SetStateAction, useContext, useEffect, useState } from "react";
+import { FirebaseContext } from "./_app";
+import { DatasetCard } from "@/components/DatasetCard/DatasetCard";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
 
 export default function Home() {
+  const { contract } = useContract();
+  const { firebaseApp } = useContext(FirebaseContext);
+  const db = getFirestore(firebaseApp);
+
+  const [dataSets, setDataSets] = useState<
+    Array<Record<string, unknown>>
+  >([]);
+
+  useEffect(() => {
+    const fetchAllDataSets = async () => {
+      const allOnChainDatasetsPromise = contract.methods
+        .getAllDataSets()
+        .call();
+      const allFirebaseDatasetsPromise = getDocs(collection(db, "datasets"));
+
+      const [allOnChainDatasets, allFirebaseDatasets] = await Promise.all([
+        allOnChainDatasetsPromise,
+        allFirebaseDatasetsPromise,
+      ]);
+
+      const finalFBDatasets: Record<string, unknown> = {};
+      allFirebaseDatasets.forEach((doc) => {
+        finalFBDatasets[doc.id] = {
+          fid: doc.id,
+          ...doc.data(),
+        };
+      });
+
+      // merge the two arrays
+      const finalDataset = allOnChainDatasets.map((dataset) => {
+        const fid = dataset[2];
+        const firebaseDoc = finalFBDatasets?.[fid] || {};
+        return {
+          owner: dataset[0],
+          name: dataset[1],
+          fid,
+          description: dataset[3],
+          cost: dataset[4],
+          authorizedUsers: dataset[5],
+          ...firebaseDoc,
+        };
+      });
+
+      setDataSets(finalDataset);
+    };
+
+    fetchAllDataSets();
+  }, [contract]);
+
   return (
     <>
       <Head>
@@ -14,7 +69,11 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Layout>
-
+        <Flex gap={{ row: 8, column: 8 }}>
+          {dataSets?.map(({ name, description, cost, thumbnailUrls }) => (
+            <DatasetCard key={name} name={name} thumnbnailUrls={thumbnailUrls} />
+          ))}
+        </Flex>
       </Layout>
     </>
   );

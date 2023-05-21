@@ -36,10 +36,11 @@ import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
 import FilePondPluginImagePreview from "filepond-plugin-image-preview";
 import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { FirebaseContext } from "@/pages/_app";
 import { useConnectedMetaMask } from "metamask-react";
 import { useContract } from "@/util/useContract";
+import { randomUUID } from "crypto";
 
 // Register the plugins
 registerPlugin(FilePondPluginImageExifOrientation, FilePondPluginImagePreview);
@@ -78,6 +79,8 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
   const { contract, address } = useContract();
   const { firebaseApp } = useContext(FirebaseContext);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const [uploadFile] = useUploadFile();
   const storage = getStorage(firebaseApp);
   const db = getFirestore(firebaseApp);
@@ -87,69 +90,78 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
   };
 
   const onSubmit = async (data) => {
-    // first ZIP all of the files and then upload them to jackal
-    // const zip = new JSZip();
-    // data.files.forEach((file: File) =>
-    //   zip.file(file.webkitRelativePath || file.name, file, { binary: true })
-    // );
-    // const zippedBlob = await zip.generateAsync({ type: "blob" });
-    // console.log(zippedBlob);
-    // const jackalFormData = new FormData();
-    // jackalFormData.append("file", zippedBlob, `${data.name}.zip`);
-    // const jackalResponse = await fetch("http://localhost:2929/upload", {
-    //   method: "POST",
-    //   body: jackalFormData,
-    //   redirect: "follow",
-    // });
-
-    // const { fid } = (await jackalResponse.json()) || {};
-
-    const fid =
-      "jklf1xzhm0vz7jxjzrk77ym92dmp4y2m42edllnepc2pk9awqdtsn0u0shn025z";
-
-    if (fid) {
-      // create smart contract
-      const txnDetails = {
-        to: address,
-        from: account,
-        data: contract.methods
-          .createDataSet(
-            account,
-            data.name,
-            fid,
-            data.description,
-            utils.parseUnits(data.price.toString(), "ether")
-          )
-          .encodeABI(),
-      };
-
-      // buy
-      // const txnDetails = {
-      //   to: address,
-      //   from: account,
-      //   value: utils.parseUnits(data.price.toString(), "ether").toHexString(),
-      //   data: contract.methods.buyDataSet(0).encodeABI(),
-      // };
-
-      const response = await ethereum.request({
-        method: "eth_sendTransaction",
-        params: [txnDetails],
+    setIsSubmitting(true);
+    try {
+      // first ZIP all of the files and then upload them to jackal
+      const zip = new JSZip();
+      data.files.forEach((file: File) =>
+        zip.file(file.webkitRelativePath || file.name, file, { binary: true })
+      );
+      const zippedBlob = await zip.generateAsync({ type: "blob" });
+      const jackalFormData = new FormData();
+      jackalFormData.append("file", zippedBlob, `${data.name}-${Date()}.zip`);
+      const jackalResponse = await fetch("http://localhost:2929/upload", {
+        method: "POST",
+        body: jackalFormData,
+        redirect: "follow",
       });
 
-      // create firestore document for the contract
-      const thumbnailFiles = data.files.slice(0, 4);
+      const { fid } = (await jackalResponse.json()) || {};
 
-      // // then upload thumbnails and set under contract ID in firestore
-      thumbnailFiles.forEach(async (file: File) => {
-        const fileRef = ref(storage, `${fid}/${file.name}`);
-        const result = await uploadFile(fileRef, file, {
-          contentType: file.type,
+      if (fid) {
+        // create smart contract
+        const txnDetails = {
+          to: address,
+          from: account,
+          data: contract.methods
+            .createDataSet(
+              account,
+              data.name,
+              fid,
+              data.description,
+              utils.parseUnits(data.price.toString(), "ether")
+            )
+            .encodeABI(),
+        };
+
+        // buy
+        // const txnDetails = {
+        //   to: address,
+        //   from: account,
+        //   value: utils.parseUnits(data.price.toString(), "ether").toHexString(),
+        //   data: contract.methods.buyDataSet(0).encodeABI(),
+        // };
+
+        const response = await ethereum.request({
+          method: "eth_sendTransaction",
+          params: [txnDetails],
         });
-        const downloadUrl = await getDownloadURL(result.ref);
-        setDoc(doc(db, "datasets", fid), {
-          thumbnailUrls: arrayUnion(downloadUrl),
+
+        // create firestore document for the contract
+        const thumbnailFiles = data.files.slice(0, 4);
+
+        const fireStoreDoc = doc(db, "datasets", fid);
+        setDoc(fireStoreDoc, {
+          thumbnailUrls: [],
+          fid,
         });
-      });
+
+        // // then upload thumbnails and set under contract ID in firestore
+        thumbnailFiles.forEach(async (file: File) => {
+          const fileRef = ref(storage, `${fid}/${file.name}`);
+          const result = await uploadFile(fileRef, file, {
+            contentType: file.type,
+          });
+          const downloadUrl = await getDownloadURL(result.ref);
+          updateDoc(doc(db, "datasets", fid), {
+            thumbnailUrls: arrayUnion(downloadUrl),
+          });
+        });
+      }
+
+      setIsSubmitting(false);
+    } catch {
+      setIsSubmitting(false);
     }
   };
 
@@ -165,7 +177,8 @@ export const Create = ({ setIsCreateSidepanelVisible }) => {
         footer={
           <Flex justifyContent="end">
             <Button
-              text="Publish Dataset"
+              text={isSubmitting ? "Creating Dataset..." : "Publish Dataset"}
+              disabled={isSubmitting}
               onClick={handleSubmit(onSubmit, onError)}
               color="blue"
             />
